@@ -1,0 +1,80 @@
+---
+title: "First project John Hopkins"
+author: "Akanksha"
+date: "2/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Lets begin with step 1 and read the data here.
+
+
+```{r,echo=TRUE}
+df <- read.csv("activity.csv" , header = TRUE)
+##Taking a sneak peak inside data to make sure its read correctly.
+head(df)
+```
+For a better understanding of data, we can see its glimpse using the glimpse function.
+we would need to load Tidyverse package in order to use this fucntion
+```{r,echo=TRUE}
+library(tidyverse)
+glimpse(df)
+```
+we notice that date column of the dataset is "character" type. we need to change this using lubridate package and converting it into date type.
+```{r,echo=TRUE}
+library(lubridate)
+df$date <- ymd(df$date)
+```
+To begin with the code for step 2 , plotting Histogram of total number of steps taken each day , we first need to calculate the total steps for each day.
+```{r ,echo=TRUE}
+histdf <- df%>%group_by(date)%>%summarise("total_steps" = sum(steps))
+head(histdf)
+```
+Here we get a tibble object displaying the summarised data where each date is followed by a column stating the total steps taken on that day. 
+Now we will proceed with the histogram.
+```{r, echo=TRUE}
+hist(histdf$total_steps, xlab = "total steps", main = "Histogram of the total number of steps taken each day" , col = "orange")
+```
+For step 3, we can use Tidyverse package to summarise data in terms of mean and median.
+```{r , echo=TRUE}
+dfstep3 <- df%>%group_by(date)%>%summarise("mean_steps" = mean(steps)
+                                           ,"median_steps" = median(steps))
+head(dfstep3)
+```
+Here we proceed to next step. First we will summarise average steps for each interval across all days, then we will proceed with it's plot.
+```{r ,echo=TRUE}
+dfstep4 <- df%>%group_by(interval,date)%>%summarise("avgsteps" = mean(steps))
+plot(dfstep4$avgsteps ~ dfstep4$interval, type ="l", xlab = "Interval across all days", ylab = "Average steps taken",main= "plot for average steps taken in each time interval")
+```
+to get the interval containing maximum number of steps, we can make use  of above tibble and calculate max
+```{r,echo=TRUE}
+dfstep4[which.max(dfstep4$avgsteps),]
+```
+here we get the interval for which we have maximum number of average steps.
+
+Now for the next task, we first need to report the total number of missing values in the dataset 
+```{r , echo=TRUE}
+nrow(df[!complete.cases(df),])
+```
+we will now devise a strategy to fill all of the NA values and replace it with 0 instead.
+```{r , echo=TRUE}
+ df$steps <- df$steps%>%replace_na("0")
+```
+Now we have a new dataset where all the missing values i.e NA is now replaced with zero.
+For the next step of assignment , we will see if this brings any change to the plots we earlier made.
+```{r,echo=TRUE}
+df$steps <- as.numeric(df$steps)
+histdf <- df%>%group_by(date)%>%summarise("total_steps"=(sum(steps)))
+hist(histdf$total_steps, xlab = "total steps", main = "Histogram of the total number of steps taken each day" , col = "blue")
+```
+The histogram plotting doesn't seem much changed. We will next check it for other reportings calculated for mean and median.
+```{r,echo=TRUE}
+dfstep7 <- df%>%group_by(date)%>%summarise("mean_steps" = mean(steps)
+                                           ,"median_steps" = median(steps))
+head(dfstep7)
+```
+as per our observations, it turns out there is no significant difference in the graphs for both missing values and without missing values , 
+supposedly the reason being we replaced values with 0 nor some other value such as mean or median. This preserves the correct calculations for our data.
+
